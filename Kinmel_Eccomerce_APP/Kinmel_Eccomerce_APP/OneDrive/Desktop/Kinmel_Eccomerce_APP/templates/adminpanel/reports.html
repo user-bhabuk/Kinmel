@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports & Analytics - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-chart-bar me-2"></i>Reports & Analytics</h2>
+                <div>
+                    <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                    <button class="btn btn-primary ms-2" onclick="refreshPage()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card report-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h5>Sales Report</h5>
+                    <p class="text-muted">Detailed sales analytics and trends</p>
+                    <button class="btn btn-primary" onclick="generateSalesReport()">
+                        <i class="fas fa-download me-1"></i>Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card report-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-success mb-3"></i>
+                    <h5>User Report</h5>
+                    <p class="text-muted">User registration and activity data</p>
+                    <button class="btn btn-success" onclick="generateUserReport()">
+                        <i class="fas fa-download me-1"></i>Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card report-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-box fa-3x text-info mb-3"></i>
+                    <h5>Inventory Report</h5>
+                    <p class="text-muted">Product stock and inventory levels</p>
+                    <button class="btn btn-info" onclick="generateInventoryReport()">
+                        <i class="fas fa-download me-1"></i>Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card report-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-store fa-3x text-warning mb-3"></i>
+                    <h5>Shop Report</h5>
+                    <p class="text-muted">Shop performance and statistics</p>
+                    <button class="btn btn-warning" onclick="generateShopReport()">
+                        <i class="fas fa-download me-1"></i>Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Dashboard -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Analytics Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="salesChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="userChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Top Selling Products</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-box fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No sales data available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Top Customers</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No customer data available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Recent Activity</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No recent activity</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-export me-2"></i>Export Options</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="exportToPDF()">
+                                    <i class="fas fa-file-pdf me-1"></i>Export to PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-success" onclick="exportToExcel()">
+                                    <i class="fas fa-file-excel me-1"></i>Export to Excel
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-info" onclick="exportToCSV()">
+                                    <i class="fas fa-file-csv me-1"></i>Export to CSV
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-warning" onclick="scheduleReport()">
+                                    <i class="fas fa-calendar me-1"></i>Schedule Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function refreshPage() {
+    location.reload();
+}
+
+function generateSalesReport() {
+    alert('Sales report generation functionality coming soon!');
+}
+
+function generateUserReport() {
+    alert('User report generation functionality coming soon!');
+}
+
+function generateInventoryReport() {
+    alert('Inventory report generation functionality coming soon!');
+}
+
+function generateShopReport() {
+    alert('Shop report generation functionality coming soon!');
+}
+
+function exportToPDF() {
+    alert('PDF export functionality coming soon!');
+}
+
+function exportToExcel() {
+    alert('Excel export functionality coming soon!');
+}
+
+function exportToCSV() {
+    alert('CSV export functionality coming soon!');
+}
+
+function scheduleReport() {
+    alert('Report scheduling functionality coming soon!');
+}
+
+// Initialize Charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Sales',
+                data: [0, 0, 0, 0, 0, 0],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Sales Trend (Last 6 Months)'
+                }
+            }
+        }
+    });
+
+    // User Chart
+    const userCtx = document.getElementById('userChart').getContext('2d');
+    new Chart(userCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Customers', 'Traders', 'Admins'],
+            datasets: [{
+                data: [0, 0, 1],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'User Distribution'
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.report-card {
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}

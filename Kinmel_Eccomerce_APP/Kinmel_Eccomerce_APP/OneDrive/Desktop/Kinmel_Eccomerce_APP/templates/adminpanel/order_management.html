@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Management - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-shopping-cart me-2"></i>Order Management</h2>
+                <div>
+                    <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                    <button class="btn btn-primary ms-2" onclick="refreshPage()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ orders.count }}</h4>
+                            <p class="mb-0">Total Orders</p>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Pending Orders</p>
+                        </div>
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">Completed Orders</p>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">$0</h4>
+                            <p class="mb-0">Total Revenue</p>
+                        </div>
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Orders</h5>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Items</th>
+                                        <th>Total Amount</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ order.order_number }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2">
+                                                    {% if order.customer.profile_picture %}
+                                                        <img src="{{ order.customer.profile_picture.url }}" class="rounded-circle" width="32" height="32">
+                                                    {% else %}
+                                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                            <span class="text-white fw-bold">{{ order.customer.username|first|upper }}</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ order.customer.username }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ order.customer.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ order.items.count }} items</td>
+                                        <td>
+                                            <strong>${{ order.total_amount|floatformat:2 }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif order.status == 'processing' %}
+                                                <span class="badge bg-info">Processing</span>
+                                            {% elif order.status == 'shipped' %}
+                                                <span class="badge bg-primary">Shipped</span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge bg-success">Delivered</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ order.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.payment_status == 'paid' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% elif order.payment_status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif order.payment_status == 'failed' %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ order.payment_status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-info" onclick="viewOrderDetails({{ order.id }})">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                                {% if order.status == 'pending' %}
+                                                    <button class="btn btn-sm btn-success" onclick="processOrder({{ order.id }})">
+                                                        <i class="fas fa-play"></i> Process
+                                                    </button>
+                                                {% endif %}
+                                                {% if order.status != 'cancelled' and order.status != 'delivered' %}
+                                                    <button class="btn btn-sm btn-danger" onclick="cancelOrder({{ order.id }})">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No orders found</h5>
+                            <p class="text-muted">No orders have been placed yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshPage() {
+    location.reload();
+}
+
+function viewOrderDetails(orderId) {
+    alert('Order details functionality coming soon!');
+}
+
+function processOrder(orderId) {
+    if (confirm('Are you sure you want to process this order?')) {
+        alert('Order processing functionality coming soon!');
+    }
+}
+
+function cancelOrder(orderId) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+        alert('Order cancellation functionality coming soon!');
+    }
+}
+</script>
+
+<style>
+.stat-card {
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.avatar-sm img {
+    object-fit: cover;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+</style>
+{% endblock %}

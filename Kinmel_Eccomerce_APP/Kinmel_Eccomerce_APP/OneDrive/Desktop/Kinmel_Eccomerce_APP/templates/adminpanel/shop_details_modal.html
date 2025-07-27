@@ -1,0 +1,193 @@
+<div class="row">
+    <div class="col-md-6">
+        <h6 class="fw-bold mb-3">Shop Information</h6>
+        <table class="table table-sm">
+            <tr>
+                <td><strong>Shop Name:</strong></td>
+                <td>{{ shop.name }}</td>
+            </tr>
+            <tr>
+                <td><strong>Owner:</strong></td>
+                <td>{{ shop.owner.username }} ({{ shop.owner.first_name }} {{ shop.owner.last_name }})</td>
+            </tr>
+            <tr>
+                <td><strong>Email:</strong></td>
+                <td>{{ shop.email|default:"Not provided" }}</td>
+            </tr>
+            <tr>
+                <td><strong>Phone:</strong></td>
+                <td>{{ shop.phone|default:"Not provided" }}</td>
+            </tr>
+            <tr>
+                <td><strong>Website:</strong></td>
+                <td>
+                    {% if shop.website %}
+                        <a href="{{ shop.website }}" target="_blank">{{ shop.website }}</a>
+                    {% else %}
+                        Not provided
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Address:</strong></td>
+                <td>{{ shop.address|default:"Not provided" }}</td>
+            </tr>
+            <tr>
+                <td><strong>Opening Hours:</strong></td>
+                <td>
+                    {% if shop.opening_time and shop.closing_time %}
+                        {{ shop.opening_time }} - {{ shop.closing_time }}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Created:</strong></td>
+                <td>{{ shop.created_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            <tr>
+                <td><strong>Status:</strong></td>
+                <td>
+                    {% if shop.is_active and shop.is_approved %}
+                        <span class="badge bg-success">Active</span>
+                    {% elif shop.is_approved %}
+                        <span class="badge bg-warning">Inactive</span>
+                    {% else %}
+                        <span class="badge bg-danger">Pending Approval</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="col-md-6">
+        <h6 class="fw-bold mb-3">Shop Statistics</h6>
+        
+        <div class="row mb-3">
+            <div class="col-6">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-0 text-primary">{{ products.count }}</h4>
+                    <small>Products</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-0 text-success">{{ shop.total_rating|floatformat:1 }}</h4>
+                    <small>Rating</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-6">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-0 text-info">{{ shop.total_reviews }}</h4>
+                    <small>Reviews</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="text-center p-3 bg-light rounded">
+                    <h4 class="mb-0 text-warning">0</h4>
+                    <small>Orders</small>
+                </div>
+            </div>
+        </div>
+        
+        <h6 class="fw-bold mb-3">Recent Products</h6>
+        {% if products %}
+            <div class="list-group">
+                {% for product in products %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ product.name }}</h6>
+                                <small class="text-muted">{{ product.description|truncatechars:50 }}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-primary">${{ product.price }}</strong>
+                                <br>
+                                <small class="text-muted">Stock: {{ product.stock_quantity }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No products added yet
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <h6 class="fw-bold mb-3">Shop Description</h6>
+        <div class="card">
+            <div class="card-body">
+                <p>{{ shop.description|default:"No description provided" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <h6 class="fw-bold mb-3">Shop Images</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="text-center">
+                    <h6>Logo</h6>
+                    {% if shop.logo %}
+                        <img src="{{ shop.logo.url }}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                    {% else %}
+                        <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; margin: 0 auto;">
+                            <span class="text-muted">No Logo</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-center">
+                    <h6>Banner</h6>
+                    {% if shop.banner %}
+                        <img src="{{ shop.banner.url }}" class="img-thumbnail" style="max-width: 200px; max-height: 100px;">
+                    {% else %}
+                        <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="width: 200px; height: 100px; margin: 0 auto;">
+                            <span class="text-muted">No Banner</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-end gap-2">
+            {% if not shop.is_approved %}
+                <button class="btn btn-success" onclick="approveShop({{ shop.id }}); bootstrap.Modal.getInstance(document.getElementById('shopDetailsModal')).hide();">
+                    <i class="fas fa-check"></i> Approve Shop
+                </button>
+                <button class="btn btn-danger" onclick="rejectShop({{ shop.id }}); bootstrap.Modal.getInstance(document.getElementById('shopDetailsModal')).hide();">
+                    <i class="fas fa-times"></i> Reject Shop
+                </button>
+            {% else %}
+                {% if shop.is_active %}
+                    <button class="btn btn-warning" onclick="deactivateShop({{ shop.id }}); bootstrap.Modal.getInstance(document.getElementById('shopDetailsModal')).hide();">
+                        <i class="fas fa-ban"></i> Deactivate Shop
+                    </button>
+                {% else %}
+                    <button class="btn btn-success" onclick="activateShop({{ shop.id }}); bootstrap.Modal.getInstance(document.getElementById('shopDetailsModal')).hide();">
+                        <i class="fas fa-check"></i> Activate Shop
+                    </button>
+                {% endif %}
+            {% endif %}
+            <button class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </div>
+</div>
