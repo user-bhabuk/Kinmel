@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trader Dashboard - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-tachometer-alt me-2"></i>Trader Dashboard</h2>
+                <div>
+                    {% if shops.count < 4 %}
+                    <a href="{% url 'shops:create_shop' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create New Shop
+                    </a>
+                    {% else %}
+                    <span class="badge bg-warning fs-6">Maximum shops reached (4/4)</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ shops.count }}</h3>
+                            <p class="mb-0">Total Shops</p>
+                        </div>
+                        <i class="fas fa-store stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ total_products }}</h3>
+                            <p class="mb-0">Total Products</p>
+                        </div>
+                        <i class="fas fa-box stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ active_products }}</h3>
+                            <p class="mb-0">Active Products</p>
+                        </div>
+                        <i class="fas fa-check-circle stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ shops.count }}/4</h3>
+                            <p class="mb-0">Shop Limit</p>
+                        </div>
+                        <i class="fas fa-chart-pie stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shops Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-store me-2"></i>My Shops</h5>
+                    {% if shops.count < 4 %}
+                    <a href="{% url 'shops:create_shop' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Shop
+                    </a>
+                    {% else %}
+                    <span class="badge bg-warning">Maximum shops reached (4/4)</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if shops %}
+                    <div class="row">
+                        {% for shop in shops %}
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card shop-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start mb-3">
+                                        {% if shop.logo %}
+                                        <img src="{{ shop.logo.url }}" class="shop-logo me-3" alt="{{ shop.name }}">
+                                        {% else %}
+                                        <div class="shop-logo me-3 bg-light d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-store text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title mb-1">{{ shop.name }}</h6>
+                                            <p class="card-text text-muted small mb-2">{{ shop.description|truncatewords:10 }}</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                {% if shop.is_approved %}
+                                                <span class="badge bg-success me-2">Approved</span>
+                                                {% else %}
+                                                <span class="badge bg-warning me-2">Pending Approval</span>
+                                                {% endif %}
+                                                {% if shop.is_active %}
+                                                <span class="badge bg-primary">Active</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row text-center mb-3">
+                                        <div class="col-4">
+                                            <small class="text-muted">Products</small>
+                                            <div class="fw-bold">{{ shop.products.count }}</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">Rating</small>
+                                            <div class="fw-bold">{{ shop.average_rating|floatformat:1 }}</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">Reviews</small>
+                                            <div class="fw-bold">{{ shop.total_reviews }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'shops:shop_products' shop.pk %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-box me-1"></i>Manage Products
+                                        </a>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'shops:edit_shop' shop.pk %}" class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </a>
+                                            <a href="{% url 'shops:shop_detail' shop.pk %}" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-store fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No shops yet</h5>
+                        <p class="text-muted mb-4">Create your first shop to start selling products</p>
+                        <a href="{% url 'shops:create_shop' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create Your First Shop
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'shops:discount_requests' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-percentage d-block mb-2 fa-2x"></i>
+                                Discount Requests
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'users:profile' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-user d-block mb-2 fa-2x"></i>
+                                Profile Settings
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-success w-100">
+                                <i class="fas fa-chart-line d-block mb-2 fa-2x"></i>
+                                Sales Analytics
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-headset d-block mb-2 fa-2x"></i>
+                                Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-refresh stats every 30 seconds
+    setInterval(function() {
+        // You can implement AJAX refresh here if needed
+    }, 30000);
+    
+    // Tooltip initialization
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Account Pending Approval - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center">
+                <div class="mb-4">
+                    <i class="fas fa-clock fa-5x text-warning"></i>
+                </div>
+                
+                <h2 class="mb-3">Account Pending Approval</h2>
+                
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Your trader account is under review</h5>
+                    <p class="mb-0">
+                        Thank you for registering as a trader with Kinmel E-Commerce. 
+                        Your account is currently being reviewed by our admin team.
+                    </p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">What happens next?</h5>
+                        <div class="row text-start">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-search text-primary me-2"></i>Review Process</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i>Document verification</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Business information review</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Background check</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-clock text-info me-2"></i>Timeline</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-calendar me-2"></i>Review: 1-3 business days</li>
+                                    <li><i class="fas fa-envelope me-2"></i>Email notification</li>
+                                    <li><i class="fas fa-store me-2"></i>Start selling immediately</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h5>Need help?</h5>
+                    <p class="text-muted">
+                        If you have any questions about the approval process, please contact our support team.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="mailto:support@kinmel.com" class="btn btn-outline-primary">
+                            <i class="fas fa-envelope me-2"></i>Email Support
+                        </a>
+                        <a href="tel:+1234567890" class="btn btn-outline-info">
+                            <i class="fas fa-phone me-2"></i>Call Support
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{% url 'users:profile' %}" class="btn btn-secondary me-2">
+                        <i class="fas fa-user me-2"></i>View Profile
+                    </a>
+                    <a href="{% url 'shops:home' %}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

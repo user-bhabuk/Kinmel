@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Product - {{ shop.name }} - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="form-container">
+                <h2 class="form-title">
+                    <i class="fas fa-plus me-2"></i>Add New Product to {{ shop.name }}
+                </h2>
+                
+                <p class="text-center text-muted mb-4">
+                    Fill in the details below to add a new product to your shop
+                </p>
+                
+                <form method="post" enctype="multipart/form-data" id="product-form">
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3 text-primary">Basic Information</h5>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-2"></i>Product Name *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">
+                                <i class="fas fa-list me-2"></i>Category *
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.category.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <i class="fas fa-align-left me-2"></i>Description *
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Provide a detailed description of your product</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.sku.id_for_label }}" class="form-label">
+                                <i class="fas fa-barcode me-2"></i>SKU (Stock Keeping Unit) *
+                            </label>
+                            {{ form.sku }}
+                            {% if form.sku.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.sku.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Unique identifier for this product</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.condition.id_for_label }}" class="form-label">
+                                <i class="fas fa-info-circle me-2"></i>Condition *
+                            </label>
+                            {{ form.condition }}
+                            {% if form.condition.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.condition.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.brand.id_for_label }}" class="form-label">
+                                <i class="fas fa-copyright me-2"></i>Brand
+                            </label>
+                            {{ form.brand }}
+                            {% if form.brand.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.brand.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.model.id_for_label }}" class="form-label">
+                                <i class="fas fa-cog me-2"></i>Model
+                            </label>
+                            {{ form.model }}
+                            {% if form.model.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.model.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3 text-primary">Pricing</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.price.id_for_label }}" class="form-label">
+                                <i class="fas fa-dollar-sign me-2"></i>Current Price *
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.price }}
+                            </div>
+                            {% if form.price.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.price.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.original_price.id_for_label }}" class="form-label">
+                                <i class="fas fa-tags me-2"></i>Original Price (Optional)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.original_price }}
+                            </div>
+                            {% if form.original_price.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.original_price.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">For showing discounts (must be higher than current price)</div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3 text-primary">Inventory</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.stock_quantity.id_for_label }}" class="form-label">
+                                <i class="fas fa-boxes me-2"></i>Stock Quantity *
+                            </label>
+                            {{ form.stock_quantity }}
+                            {% if form.stock_quantity.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.stock_quantity.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.low_stock_threshold.id_for_label }}" class="form-label">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert
+                            </label>
+                            {{ form.low_stock_threshold }}
+                            {% if form.low_stock_threshold.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.low_stock_threshold.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Alert when stock falls below this number</div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3 text-primary">Dimensions & Weight (Optional)</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="{{ form.weight.id_for_label }}" class="form-label">
+                                <i class="fas fa-weight me-2"></i>Weight (kg)
+                            </label>
+                            {{ form.weight }}
+                            {% if form.weight.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.weight.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label for="{{ form.length.id_for_label }}" class="form-label">
+                                <i class="fas fa-ruler me-2"></i>Length (cm)
+                            </label>
+                            {{ form.length }}
+                            {% if form.length.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.length.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label for="{{ form.width.id_for_label }}" class="form-label">
+                                <i class="fas fa-ruler me-2"></i>Width (cm)
+                            </label>
+                            {{ form.width }}
+                            {% if form.width.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.width.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label for="{{ form.height.id_for_label }}" class="form-label">
+                                <i class="fas fa-ruler me-2"></i>Height (cm)
+                            </label>
+                            {{ form.height }}
+                            {% if form.height.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.height.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3 text-primary">Product Settings</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check">
+                                {{ form.is_featured }}
+                                <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">
+                                    <i class="fas fa-star me-2"></i>Featured Product
+                                </label>
+                                <div class="form-text">Show this product in featured sections</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check">
+                                {{ form.is_digital }}
+                                <label class="form-check-label" for="{{ form.is_digital.id_for_label }}">
+                                    <i class="fas fa-download me-2"></i>Digital Product
+                                </label>
+                                <div class="form-text">No physical shipping required</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3 text-primary">SEO (Optional)</h5>
+                    <div class="mb-3">
+                        <label for="{{ form.meta_title.id_for_label }}" class="form-label">
+                            <i class="fas fa-search me-2"></i>Meta Title
+                        </label>
+                        {{ form.meta_title }}
+                        {% if form.meta_title.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.meta_title.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Title for search engines (leave blank to use product name)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.meta_description.id_for_label }}" class="form-label">
+                            <i class="fas fa-file-alt me-2"></i>Meta Description
+                        </label>
+                        {{ form.meta_description }}
+                        {% if form.meta_description.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.meta_description.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Description for search engines</div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3 text-primary">Product Images</h5>
+                    <div id="image-formset">
+                        {{ formset.management_form }}
+                        {% for form_image in formset %}
+                        <div class="image-form mb-3 p-3 border rounded">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Product Image</label>
+                                    {{ form_image.image }}
+                                    {% if form_image.image.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form_image.image.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Alt Text</label>
+                                    {{ form_image.alt_text }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Primary</label>
+                                    {{ form_image.is_primary }}
+                                    <div class="form-text">Main image</div>
+                                </div>
+                            </div>
+                            {{ form_image.DELETE }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg btn-custom">
+                            <i class="fas fa-plus me-2"></i>Add Product
+                        </button>
+                        <a href="{% url 'shops:shop_products' shop.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Products
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-focus on product name field
+    $('#{{ form.name.id_for_label }}').focus();
+    
+    // Generate SKU from product name
+    $('#{{ form.name.id_for_label }}').on('input', function() {
+        const name = $(this).val();
+        const sku = name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 10) + '-' + Math.floor(Math.random() * 1000);
+        $('#{{ form.sku.id_for_label }}').val(sku);
+    });
+    
+    // Price validation
+    $('#{{ form.original_price.id_for_label }}').on('input', function() {
+        const originalPrice = parseFloat($(this).val());
+        const currentPrice = parseFloat($('#{{ form.price.id_for_label }}').val());
+        
+        if (originalPrice && currentPrice && originalPrice <= currentPrice) {
+            $(this).addClass('is-invalid');
+            $(this).siblings('.form-text').text('Original price must be higher than current price').addClass('text-danger');
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).siblings('.form-text').text('For showing discounts (must be higher than current price)').removeClass('text-danger');
+        }
+    });
+    
+    // Image preview
+    $('input[type="file"]').change(function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $(this).siblings('.image-preview').remove();
+                $(this).after(`<img class="image-preview mt-2" src="${e.target.result}" style="max-width: 200px; height: 100px; object-fit: cover;">`);
+            }.bind(this);
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %}

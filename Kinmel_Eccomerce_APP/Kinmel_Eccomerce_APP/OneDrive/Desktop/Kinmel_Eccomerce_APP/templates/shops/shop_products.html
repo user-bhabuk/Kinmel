@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ shop.name }} - Products - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-box me-2"></i>{{ shop.name }} - Products</h2>
+                    <p class="text-muted mb-0">Manage your shop's product inventory</p>
+                </div>
+                <div>
+                    <a href="{% url 'shops:create_product' shop.pk %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add New Product
+                    </a>
+                    <a href="{% url 'shops:trader_dashboard' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Info Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            {% if shop.logo %}
+                            <img src="{{ shop.logo.url }}" class="img-fluid rounded" alt="{{ shop.name }}" style="max-height: 80px;">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
+                                <i class="fas fa-store fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-1">{{ shop.name }}</h5>
+                            <p class="text-muted mb-2">{{ shop.description|truncatewords:20 }}</p>
+                            <div>
+                                {% if shop.is_approved %}
+                                <span class="badge bg-success me-2">Approved</span>
+                                {% else %}
+                                <span class="badge bg-warning me-2">Pending Approval</span>
+                                {% endif %}
+                                {% if shop.is_active %}
+                                <span class="badge bg-primary">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold">{{ products.count }}</div>
+                                    <small class="text-muted">Products</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold">{{ shop.average_rating|floatformat:1 }}</div>
+                                    <small class="text-muted">Rating</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold">{{ shop.total_reviews }}</div>
+                                    <small class="text-muted">Reviews</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Product List</h5>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-info me-2">{{ products.count }} Products</span>
+                        <a href="{% url 'shops:create_product' shop.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add Product
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr>
+                                    <td>
+                                        {% if product.images.first %}
+                                        <img src="{{ product.images.first.image.url }}" 
+                                             class="img-thumbnail" 
+                                             alt="{{ product.name }}"
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ product.name|truncatechars:30 }}</strong>
+                                            <br>
+                                            <small class="text-muted">SKU: {{ product.sku }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if product.category %}
+                                        <span class="badge bg-secondary">{{ product.category.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">No Category</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">${{ product.price }}</strong>
+                                        {% if product.original_price and product.original_price > product.price %}
+                                        <br>
+                                        <small class="text-muted text-decoration-line-through">${{ product.original_price }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if product.stock_quantity > 10 %}bg-success{% elif product.stock_quantity > 0 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ product.stock_quantity }}
+                                        </span>
+                                        {% if product.is_low_stock %}
+                                        <br><small class="text-warning">Low Stock</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if product.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                        {% if product.is_featured %}
+                                        <br><span class="badge bg-warning">Featured</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ product.created_at|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'shops:edit_product' product.pk %}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Edit Product">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'shops:product_detail' product.pk %}" 
+                                               class="btn btn-sm btn-outline-info" 
+                                               title="View Product">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-danger delete-product" 
+                                                    data-product-id="{{ product.pk }}"
+                                                    data-product-name="{{ product.name }}"
+                                                    title="Delete Product">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Products pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No products yet</h5>
+                        <p class="text-muted mb-4">Start adding products to your shop to begin selling</p>
+                        <a href="{% url 'shops:create_product' shop.pk %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Your First Product
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the product "<span id="product-name"></span>"?</p>
+                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="delete-form" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Handle delete product
+    $('.delete-product').click(function() {
+        const productId = $(this).data('product-id');
+        const productName = $(this).data('product-name');
+        
+        $('#product-name').text(productName);
+        $('#delete-form').attr('action', `/shops/trader/product/${productId}/delete/`);
+        $('#deleteModal').modal('show');
+    });
+    
+    // Auto-refresh stock status
+    setInterval(function() {
+        // You can implement real-time stock updates here
+    }, 30000);
+});
+</script>
+{% endblock %}

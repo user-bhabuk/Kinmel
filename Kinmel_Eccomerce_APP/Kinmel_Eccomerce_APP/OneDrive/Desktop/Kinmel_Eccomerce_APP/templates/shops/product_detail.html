@@ -1,0 +1,448 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'shops:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shops:product_list' %}">Products</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item"><a href="{% url 'shops:category_products' product.category.pk %}">{{ product.category.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ product.name|truncatechars:30 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6 mb-4">
+            <div class="product-gallery">
+                {% if images %}
+                <div class="main-image mb-3">
+                    <img id="main-product-image" 
+                         src="{{ images.0.image.url }}" 
+                         class="img-fluid rounded shadow" 
+                         alt="{{ product.name }}"
+                         style="width: 100%; height: 400px; object-fit: cover;">
+                </div>
+                
+                {% if images|length > 1 %}
+                <div class="thumbnail-images">
+                    <div class="row">
+                        {% for image in images %}
+                        <div class="col-3 mb-2">
+                            <img src="{{ image.image.url }}" 
+                                 class="img-thumbnail thumbnail-img {% if forloop.first %}active{% endif %}" 
+                                 alt="{{ image.alt_text }}"
+                                 style="height: 80px; object-fit: cover; cursor: pointer;"
+                                 onclick="changeMainImage('{{ image.image.url }}')">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="main-image">
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center shadow" 
+                         style="height: 400px;">
+                        <i class="fas fa-image fa-5x text-muted"></i>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-md-6">
+            <div class="product-info">
+                <h1 class="product-title mb-3">{{ product.name }}</h1>
+                
+                <!-- Rating -->
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rating me-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= product.average_rating %}
+                            <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                            <i class="far fa-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="text-muted">({{ product.total_reviews }} reviews)</span>
+                    {% if can_review %}
+                    <a href="{% url 'shops:add_review' product.pk %}" class="btn btn-sm btn-outline-primary ms-3">
+                        <i class="fas fa-star me-1"></i>Write Review
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Price -->
+                <div class="price-section mb-4">
+                    <div class="d-flex align-items-center">
+                        <span class="current-price h3 text-success me-3">${{ product.price }}</span>
+                        {% if product.original_price and product.original_price > product.price %}
+                        <span class="original-price h5 text-muted text-decoration-line-through me-2">${{ product.original_price }}</span>
+                        <span class="discount-badge badge bg-danger">{{ product.discount_percentage }}% OFF</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="product-details mb-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>SKU:</strong> {{ product.sku }}
+                        </div>
+                        <div class="col-6">
+                            <strong>Condition:</strong> 
+                            <span class="badge bg-info">{{ product.get_condition_display }}</span>
+                        </div>
+                        {% if product.brand %}
+                        <div class="col-6 mt-2">
+                            <strong>Brand:</strong> {{ product.brand }}
+                        </div>
+                        {% endif %}
+                        {% if product.model %}
+                        <div class="col-6 mt-2">
+                            <strong>Model:</strong> {{ product.model }}
+                        </div>
+                        {% endif %}
+                        <div class="col-6 mt-2">
+                            <strong>Category:</strong> 
+                            {% if product.category %}
+                            <a href="{% url 'shops:category_products' product.category.pk %}" class="text-decoration-none">
+                                {{ product.category.name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Uncategorized</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Status -->
+                <div class="stock-status mb-4">
+                    {% if product.is_in_stock %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>In Stock</strong> - {{ product.stock_quantity }} available
+                        {% if product.is_low_stock %}
+                        <br><small class="text-warning">⚠️ Only {{ product.stock_quantity }} left!</small>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>Out of Stock</strong>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Add to Cart -->
+                {% if user.is_authenticated and user.is_customer and product.is_in_stock %}
+                <div class="add-to-cart-section mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-4">
+                            <label for="quantity" class="form-label">Quantity:</label>
+                            <input type="number" 
+                                   id="quantity" 
+                                   class="form-control" 
+                                   value="1" 
+                                   min="1" 
+                                   max="{{ product.stock_quantity }}">
+                        </div>
+                        <div class="col-8">
+                            <button class="btn btn-primary btn-lg w-100" id="add-to-cart-btn" data-product-id="{{ product.pk }}">
+                                <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wishlist -->
+                <div class="wishlist-section mb-4">
+                    <button class="btn btn-outline-danger w-100" id="add-to-wishlist-btn" data-product-id="{{ product.pk }}">
+                        <i class="fas fa-heart me-2"></i>Add to Wishlist
+                    </button>
+                </div>
+                {% elif not user.is_authenticated %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <a href="{% url 'users:login' %}">Login</a> to add this product to your cart.
+                </div>
+                {% elif not user.is_customer %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Only customers can purchase products.
+                </div>
+                {% endif %}
+
+                <!-- Shop Info -->
+                <div class="shop-info card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-store me-2"></i>Sold by
+                        </h6>
+                        <div class="d-flex align-items-center">
+                            {% if product.shop.logo %}
+                            <img src="{{ product.shop.logo.url }}" 
+                                 class="rounded me-3" 
+                                 alt="{{ product.shop.name }}"
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'shops:shop_detail' product.shop.pk %}" class="text-decoration-none">
+                                        {{ product.shop.name }}
+                                    </a>
+                                </h6>
+                                <div class="rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= product.shop.average_rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="text-muted ms-1">({{ product.shop.total_reviews }})</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'shops:shop_detail' product.shop.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>View Shop
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Description -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Product Description</h5>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ product.description|linebreaks }}</p>
+                    
+                    {% if product.weight or product.length or product.width or product.height %}
+                    <h6 class="mt-4">Specifications:</h6>
+                    <div class="row">
+                        {% if product.weight %}
+                        <div class="col-md-3">
+                            <strong>Weight:</strong> {{ product.weight }} kg
+                        </div>
+                        {% endif %}
+                        {% if product.length %}
+                        <div class="col-md-3">
+                            <strong>Length:</strong> {{ product.length }} cm
+                        </div>
+                        {% endif %}
+                        {% if product.width %}
+                        <div class="col-md-3">
+                            <strong>Width:</strong> {{ product.width }} cm
+                        </div>
+                        {% endif %}
+                        {% if product.height %}
+                        <div class="col-md-3">
+                            <strong>Height:</strong> {{ product.height }} cm
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Customer Reviews ({{ reviews.count }})</h5>
+                    {% if can_review %}
+                    <a href="{% url 'shops:add_review' product.pk %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Write Review
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                    {% for review in reviews %}
+                    <div class="review-item {% if not forloop.last %}border-bottom{% endif %} pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <strong class="me-2">{{ review.customer.first_name }} {{ review.customer.last_name|first }}.</strong>
+                                    <div class="rating me-2">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% if review.is_verified_purchase %}
+                                    <span class="badge bg-success">Verified Purchase</span>
+                                    {% endif %}
+                                </div>
+                                <h6 class="mb-2">{{ review.title }}</h6>
+                                <p class="mb-2">{{ review.comment }}</p>
+                            </div>
+                            <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No reviews yet</h6>
+                        <p class="text-muted">Be the first to review this product!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h5 class="mb-3"><i class="fas fa-tags me-2"></i>Related Products</h5>
+            <div class="row">
+                {% for related in related_products %}
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card product-card h-100">
+                        <div class="position-relative">
+                            {% if related.images.first %}
+                            <img src="{{ related.images.first.image.url }}" 
+                                 class="card-img-top" 
+                                 alt="{{ related.name }}"
+                                 style="height: 200px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="fas fa-image fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">{{ related.name|truncatewords:4 }}</h6>
+                            <p class="text-success fw-bold">${{ related.price }}</p>
+                            <a href="{% url 'shops:product_detail' related.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Add to cart functionality
+    $('#add-to-cart-btn').click(function() {
+        const productId = $(this).data('product-id');
+        const quantity = $('#quantity').val();
+        const button = $(this);
+        
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Adding...');
+        
+        $.post(`/orders/cart/add/${productId}/`, {
+            'quantity': quantity,
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        })
+        .done(function(data) {
+            if (data.success) {
+                button.removeClass('btn-primary').addClass('btn-success')
+                      .html('<i class="fas fa-check me-2"></i>Added to Cart!');
+                
+                // Update cart count
+                $('#cart-count').text(data.cart_count);
+                
+                // Show success message
+                showMessage(data.message, 'success');
+                
+                // Reset button after 3 seconds
+                setTimeout(function() {
+                    button.prop('disabled', false)
+                          .removeClass('btn-success').addClass('btn-primary')
+                          .html('<i class="fas fa-cart-plus me-2"></i>Add to Cart');
+                }, 3000);
+            } else {
+                button.prop('disabled', false)
+                      .html('<i class="fas fa-cart-plus me-2"></i>Add to Cart');
+                showMessage(data.error || 'Error adding to cart', 'error');
+            }
+        })
+        .fail(function() {
+            button.prop('disabled', false)
+                  .html('<i class="fas fa-cart-plus me-2"></i>Add to Cart');
+            showMessage('Error adding to cart', 'error');
+        });
+    });
+    
+    // Add to wishlist functionality
+    $('#add-to-wishlist-btn').click(function() {
+        const productId = $(this).data('product-id');
+        const button = $(this);
+        
+        $.post(`/orders/wishlist/add/${productId}/`, {
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        })
+        .done(function(data) {
+            if (data.success) {
+                button.removeClass('btn-outline-danger').addClass('btn-danger')
+                      .html('<i class="fas fa-heart me-2"></i>Added to Wishlist!');
+                showMessage(data.message, 'success');
+            } else {
+                showMessage(data.message, 'warning');
+            }
+        })
+        .fail(function() {
+            showMessage('Error adding to wishlist', 'error');
+        });
+    });
+    
+    function showMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 
+                          type === 'warning' ? 'alert-warning' : 'alert-danger';
+        const alert = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        $('.container').prepend(alert);
+        
+        // Auto-dismiss after 4 seconds
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 4000);
+    }
+});
+
+function changeMainImage(imageUrl) {
+    $('#main-product-image').attr('src', imageUrl);
+    $('.thumbnail-img').removeClass('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}
