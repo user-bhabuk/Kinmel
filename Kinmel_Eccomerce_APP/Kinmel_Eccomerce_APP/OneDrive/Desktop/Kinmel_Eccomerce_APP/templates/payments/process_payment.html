@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment - Order #{{ order.order_number }} - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Complete Your Payment
+                    </h4>
+                    <p class="text-muted mb-0">Order #{{ order.order_number }}</p>
+                </div>
+                <div class="card-body">
+                    <!-- Order Summary -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">Order Summary</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Qty</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in order.items.all %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if item.product.images.first %}
+                                                    <img src="{{ item.product.images.first.image.url }}" 
+                                                         class="rounded me-2" 
+                                                         alt="{{ item.product.name }}"
+                                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                                    {% endif %}
+                                                    <div>
+                                                        <small class="fw-bold">{{ item.product.name|truncatewords:4 }}</small>
+                                                        <br>
+                                                        <small class="text-muted">{{ item.product.shop.name }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td>${{ item.price }}</td>
+                                            <td>${{ item.total_price }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3"><strong>Subtotal:</strong></td>
+                                            <td><strong>${{ order.subtotal }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3">Shipping:</td>
+                                            <td>${{ order.shipping_amount|default:"0.00" }}</td>
+                                        </tr>
+                                        {% if order.discount_amount > 0 %}
+                                        <tr class="text-success">
+                                            <td colspan="3">Discount:</td>
+                                            <td>-${{ order.discount_amount }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <td colspan="3">Tax:</td>
+                                            <td>${{ order.tax_amount }}</td>
+                                        </tr>
+                                        <tr class="table-success">
+                                            <td colspan="3"><strong>Total:</strong></td>
+                                            <td><strong>${{ order.total_amount }}</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">Shipping Address</h5>
+                            <div class="bg-light p-3 rounded">
+                                <address class="mb-0">
+                                    <strong>{{ order.shipping_name }}</strong><br>
+                                    {{ order.shipping_address|linebreaks }}
+                                    {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}<br>
+                                    {{ order.shipping_country }}<br>
+                                    <br>
+                                    <strong>Phone:</strong> {{ order.shipping_phone }}<br>
+                                    <strong>Email:</strong> {{ order.shipping_email }}
+                                </address>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">Payment Method</h5>
+                            
+                            <!-- PayPal Payment -->
+                            <div class="payment-option mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <i class="fab fa-paypal me-2 text-primary"></i>PayPal
+                                                </h6>
+                                                <small class="text-muted">Pay securely with your PayPal account</small>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-primary" id="paypal-button">
+                                                    <i class="fab fa-paypal me-2"></i>Pay with PayPal
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Credit Card Payment (Coming Soon) -->
+                            <div class="payment-option mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <h6 class="mb-1 text-muted">
+                                                    <i class="fas fa-credit-card me-2"></i>Credit/Debit Card
+                                                </h6>
+                                                <small class="text-muted">Coming soon - Pay with your credit or debit card</small>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-outline-secondary" disabled>
+                                                    <i class="fas fa-credit-card me-2"></i>Coming Soon
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Demo Payment (For Testing) -->
+                            <div class="payment-option">
+                                <div class="card border-warning">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <h6 class="mb-1 text-warning">
+                                                    <i class="fas fa-flask me-2"></i>Demo Payment (Testing Only)
+                                                </h6>
+                                                <small class="text-muted">Simulate successful payment for testing purposes</small>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-warning" id="demo-payment-button">
+                                                    <i class="fas fa-play me-2"></i>Demo Pay
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Notice -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-shield-alt fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="mb-1">Secure Payment</h6>
+                                        <small>Your payment information is encrypted and secure. We never store your payment details.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'orders:checkout' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Checkout
+                                </a>
+                                <div class="text-muted">
+                                    <small>
+                                        <i class="fas fa-clock me-1"></i>
+                                        This session will expire in <span id="countdown">15:00</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Processing Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Processing Payment...</h5>
+                <p class="text-muted mb-0">Please wait while we process your payment. Do not close this window.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Countdown timer
+    let timeLeft = 15 * 60; // 15 minutes in seconds
+    
+    function updateCountdown() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        $('#countdown').text(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        
+        if (timeLeft <= 0) {
+            alert('Payment session has expired. Please start over.');
+            window.location.href = '{% url "orders:cart" %}';
+        }
+        
+        timeLeft--;
+    }
+    
+    // Update countdown every second
+    setInterval(updateCountdown, 1000);
+    updateCountdown(); // Initial call
+    
+    // PayPal Payment Button
+    $('#paypal-button').click(function() {
+        const button = $(this);
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Redirecting...');
+        
+        // Show processing modal
+        $('#paymentModal').modal('show');
+        
+        // Simulate PayPal redirect (replace with actual PayPal integration)
+        setTimeout(function() {
+            // For demo purposes, redirect to success page
+            window.location.href = '{% url "payments:payment_success" order.id %}';
+        }, 3000);
+    });
+    
+    // Demo Payment Button (For Testing)
+    $('#demo-payment-button').click(function() {
+        const button = $(this);
+        
+        if (!confirm('This is a demo payment for testing purposes only. Continue?')) {
+            return;
+        }
+        
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+        
+        // Show processing modal
+        $('#paymentModal').modal('show');
+        
+        // Simulate payment processing
+        setTimeout(function() {
+            // Redirect to success page
+            window.location.href = '{% url "payments:payment_success" order.id %}';
+        }, 2000);
+    });
+    
+    // Prevent accidental page refresh
+    window.addEventListener('beforeunload', function(e) {
+        e.preventDefault();
+        e.returnValue = 'Are you sure you want to leave? Your payment session will be lost.';
+    });
+});
+
+// PayPal SDK Integration (Placeholder)
+// In a real implementation, you would load the PayPal SDK here
+// <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID"></script>
+</script>
+{% endblock %}

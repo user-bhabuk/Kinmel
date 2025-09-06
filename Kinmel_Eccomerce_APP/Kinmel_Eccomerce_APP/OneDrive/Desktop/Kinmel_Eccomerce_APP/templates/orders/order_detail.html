@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.order_number }} - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>Order #{{ order.order_number }}</h2>
+                    <p class="text-muted mb-0">Placed on {{ order.created_at|date:"F d, Y \a\t g:i A" }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'orders:order_history' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Orders
+                    </a>
+                    {% if order.can_cancel %}
+                    <button class="btn btn-outline-danger cancel-order" data-order-id="{{ order.id }}">
+                        <i class="fas fa-times me-1"></i>Cancel Order
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h6 class="mb-1">Order Status</h6>
+                            <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% elif order.status == 'shipped' %}info{% elif order.status == 'processing' %}warning{% else %}secondary{% endif %} fs-6">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="mb-1">Payment Status</h6>
+                            <span class="badge bg-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'failed' %}danger{% else %}warning{% endif %} fs-6">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="mb-1">Total Amount</h6>
+                            <span class="h5 text-success mb-0">${{ order.total_amount }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            {% if order.invoice %}
+                            <a href="#" class="btn btn-outline-success">
+                                <i class="fas fa-download me-1"></i>Download Invoice
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Progress -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Order Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress-timeline">
+                        <div class="timeline-item {% if order.status != 'cancelled' %}completed{% endif %}">
+                            <div class="timeline-marker">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Order Placed</h6>
+                                <small class="text-muted">{{ order.created_at|date:"M d, Y g:i A" }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if order.payment_status == 'paid' and order.status != 'cancelled' %}completed{% endif %}">
+                            <div class="timeline-marker">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Payment {% if order.payment_status == 'paid' %}Confirmed{% else %}Pending{% endif %}</h6>
+                                <small class="text-muted">
+                                    {% if order.payment_status == 'paid' %}
+                                    Payment processed successfully
+                                    {% else %}
+                                    Waiting for payment confirmation
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' or order.status == 'completed' %}completed{% endif %}">
+                            <div class="timeline-marker">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Processing</h6>
+                                <small class="text-muted">
+                                    {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' or order.status == 'completed' %}
+                                    Order is being prepared
+                                    {% else %}
+                                    Waiting to start processing
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if order.status == 'shipped' or order.status == 'delivered' or order.status == 'completed' %}completed{% endif %}">
+                            <div class="timeline-marker">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Shipped</h6>
+                                <small class="text-muted">
+                                    {% if order.shipped_at %}
+                                    Shipped on {{ order.shipped_at|date:"M d, Y" }}
+                                    {% else %}
+                                    Not yet shipped
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if order.status == 'delivered' or order.status == 'completed' %}completed{% endif %}">
+                            <div class="timeline-marker">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Delivered</h6>
+                                <small class="text-muted">
+                                    {% if order.delivered_at %}
+                                    Delivered on {{ order.delivered_at|date:"M d, Y" }}
+                                    {% else %}
+                                    Not yet delivered
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Items -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-box me-2"></i>Order Items ({{ order_items.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in order_items %}
+                    <div class="order-item {% if not forloop.last %}border-bottom{% endif %} pb-3 mb-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                {% if item.product.images.first %}
+                                <img src="{{ item.product.images.first.image.url }}" 
+                                     class="img-fluid rounded" 
+                                     alt="{{ item.product.name }}"
+                                     style="height: 80px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                     style="height: 80px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5">
+                                <h6 class="mb-1">
+                                    <a href="{% url 'shops:product_detail' item.product.pk %}" class="text-decoration-none">
+                                        {{ item.product.name }}
+                                    </a>
+                                </h6>
+                                <p class="text-muted mb-1">{{ item.product.description|truncatewords:10 }}</p>
+                                <small class="text-muted">
+                                    Sold by: <a href="{% url 'shops:shop_detail' item.product.shop.pk %}" class="text-decoration-none">{{ item.product.shop.name }}</a>
+                                </small>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <span class="fw-bold">${{ item.price }}</span>
+                            </div>
+                            <div class="col-md-1 text-center">
+                                <span class="badge bg-secondary">{{ item.quantity }}</span>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <span class="fw-bold text-success">${{ item.total_price }}</span>
+                                {% if item.is_shipped %}
+                                <br><small class="text-success">
+                                    <i class="fas fa-truck me-1"></i>Shipped
+                                    {% if item.tracking_number %}
+                                    <br>Tracking: {{ item.tracking_number }}
+                                    {% endif %}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Item Actions -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end">
+                                    {% if order.status == 'completed' %}
+                                    <a href="{% url 'shops:add_review' item.product.pk %}" class="btn btn-outline-primary btn-sm me-2">
+                                        <i class="fas fa-star me-1"></i>Write Review
+                                    </a>
+                                    <a href="#" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-redo me-1"></i>Buy Again
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary & Shipping -->
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>${{ order.subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping:</span>
+                        <span>${{ order.shipping_amount|default:"0.00" }}</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Discount:</span>
+                        <span>-${{ order.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax:</span>
+                        <span>${{ order.tax_amount }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="text-success">${{ order.total_amount }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shipping-fast me-2"></i>Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <address class="mb-0">
+                        <strong>{{ order.shipping_name }}</strong><br>
+                        {{ order.shipping_address|linebreaks }}
+                        {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}<br>
+                        {{ order.shipping_country }}<br>
+                        <br>
+                        <strong>Phone:</strong> {{ order.shipping_phone }}<br>
+                        <strong>Email:</strong> {{ order.shipping_email }}
+                    </address>
+                </div>
+            </div>
+
+            <!-- Customer Notes -->
+            {% if order.customer_notes %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Order Notes</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ order.customer_notes }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel order #{{ order.order_number }}?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> If payment was already processed, it may take 3-5 business days for the refund to appear in your account.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Order</button>
+                <form id="cancel-order-form" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Cancel Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.progress-timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 40px;
+    width: 2px;
+    height: 30px;
+    background-color: #dee2e6;
+}
+
+.timeline-item.completed::after {
+    background-color: #28a745;
+}
+
+.timeline-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    color: white;
+    font-size: 14px;
+}
+
+.timeline-item.completed .timeline-marker {
+    background-color: #28a745;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Handle order cancellation
+    $('.cancel-order').click(function() {
+        const orderId = $(this).data('order-id');
+        $('#cancel-order-form').attr('action', `/orders/order/${orderId}/cancel/`);
+        $('#cancelOrderModal').modal('show');
+    });
+});
+</script>
+{% endblock %}

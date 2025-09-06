@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "StoreGUI",
+            "request": "launch",
+            "mainClass": "Coursework.StoreGUI",
+            "projectName": "StoreGUI.java (3)_2f782fab"
+        },
+        {
+            "name": "Launch Chrome",
+            "request": "launch",
+            "type": "chrome"
+        },
+        {
+            "name": "Attach to Chrome",
+            "port": 9222,
+            "request": "attach",
+            "type": "chrome",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-credit-card me-2"></i>Checkout
+            </h2>
+        </div>
+    </div>
+
+    <form method="post" id="checkout-form">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Shipping Information -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shipping-fast me-2"></i>Shipping Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="shipping_name" class="form-label">Full Name *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="shipping_name" 
+                                       name="shipping_name" 
+                                       value="{{ user.get_full_name }}" 
+                                       required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="shipping_email" class="form-label">Email Address *</label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="shipping_email" 
+                                       name="shipping_email" 
+                                       value="{{ user.email }}" 
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="shipping_phone" class="form-label">Phone Number *</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="shipping_phone" 
+                                       name="shipping_phone" 
+                                       value="{{ user.phone_number }}" 
+                                       required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="shipping_country" class="form-label">Country *</label>
+                                <select class="form-select" id="shipping_country" name="shipping_country" required>
+                                    <option value="USA" selected>United States</option>
+                                    <option value="Canada">Canada</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="Australia">Australia</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shipping_address" class="form-label">Street Address *</label>
+                            <textarea class="form-control" 
+                                      id="shipping_address" 
+                                      name="shipping_address" 
+                                      rows="3" 
+                                      placeholder="Enter your full address"
+                                      required>{{ user.address }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="shipping_city" class="form-label">City *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="shipping_city" 
+                                       name="shipping_city" 
+                                       required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="shipping_state" class="form-label">State/Province *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="shipping_state" 
+                                       name="shipping_state" 
+                                       required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="shipping_postal_code" class="form-label">ZIP/Postal Code *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="shipping_postal_code" 
+                                       name="shipping_postal_code" 
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customer_notes" class="form-label">Order Notes (Optional)</label>
+                            <textarea class="form-control" 
+                                      id="customer_notes" 
+                                      name="customer_notes" 
+                                      rows="3" 
+                                      placeholder="Any special instructions for your order"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promo Code -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tag me-2"></i>Promo Code
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="promo_code" 
+                                       name="promo_code" 
+                                       placeholder="Enter promo code">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-outline-primary w-100" id="apply-promo">
+                                    <i class="fas fa-check me-1"></i>Apply
+                                </button>
+                            </div>
+                        </div>
+                        <div id="promo-message" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-receipt me-2"></i>Order Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Cart Items -->
+                        <div class="order-items mb-3">
+                            {% for item in cart_items %}
+                            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                                <div class="me-3">
+                                    {% if item.product.images.first %}
+                                    <img src="{{ item.product.images.first.image.url }}" 
+                                         class="rounded" 
+                                         alt="{{ item.product.name }}"
+                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                         style="width: 60px; height: 60px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ item.product.name|truncatewords:4 }}</h6>
+                                    <small class="text-muted">{{ item.product.shop.name }}</small>
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <span class="text-muted">Qty: {{ item.quantity }}</span>
+                                        <span class="fw-bold">${{ item.total_price }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Order Totals -->
+                        <div class="order-totals">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal ({{ cart.total_items }} items):</span>
+                                <span id="subtotal">${{ cart.total_amount }}</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping:</span>
+                                <span id="shipping-cost">Free</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2" id="discount-row" style="display: none;">
+                                <span>Discount:</span>
+                                <span id="discount-amount" class="text-success">-$0.00</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (8%):</span>
+                                <span id="tax-amount">${{ cart.total_amount|floatformat:2|mul:0.08|floatformat:2 }}</span>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="d-flex justify-content-between mb-3">
+                                <strong>Total:</strong>
+                                <strong id="total-amount">${{ cart.total_amount|floatformat:2|add:cart.total_amount|floatformat:2|mul:0.08|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="payment-method mb-3">
+                            <h6 class="mb-3">Payment Method</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="paypal" value="paypal" checked>
+                                <label class="form-check-label" for="paypal">
+                                    <i class="fab fa-paypal me-2"></i>PayPal
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="credit_card" disabled>
+                                <label class="form-check-label text-muted" for="credit_card">
+                                    <i class="fas fa-credit-card me-2"></i>Credit Card (Coming Soon)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Place Order Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="place-order-btn">
+                                <i class="fas fa-lock me-2"></i>Place Order
+                            </button>
+                            <a href="{% url 'orders:cart' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                            </a>
+                        </div>
+
+                        <!-- Security Notice -->
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Your payment information is secure and encrypted
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Calculate totals
+    function calculateTotals() {
+        const subtotal = parseFloat($('#subtotal').text().replace('$', ''));
+        const discountAmount = parseFloat($('#discount-amount').text().replace('-$', '')) || 0;
+        const taxableAmount = subtotal - discountAmount;
+        const tax = taxableAmount * 0.08;
+        const total = taxableAmount + tax;
+        
+        $('#tax-amount').text('$' + tax.toFixed(2));
+        $('#total-amount').text('$' + total.toFixed(2));
+    }
+    
+    // Apply promo code
+    $('#apply-promo').click(function() {
+        const promoCode = $('#promo_code').val().trim();
+        const button = $(this);
+        
+        if (!promoCode) {
+            showPromoMessage('Please enter a promo code', 'error');
+            return;
+        }
+        
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Applying...');
+        
+        // Simulate promo code validation (replace with actual AJAX call)
+        setTimeout(function() {
+            // Mock promo codes for demo
+            const validCodes = {
+                'SAVE10': { type: 'percentage', value: 10 },
+                'WELCOME20': { type: 'percentage', value: 20 },
+                'FLAT50': { type: 'fixed', value: 50 }
+            };
+            
+            if (validCodes[promoCode.toUpperCase()]) {
+                const promo = validCodes[promoCode.toUpperCase()];
+                const subtotal = parseFloat($('#subtotal').text().replace('$', ''));
+                let discount = 0;
+                
+                if (promo.type === 'percentage') {
+                    discount = subtotal * (promo.value / 100);
+                } else {
+                    discount = Math.min(promo.value, subtotal);
+                }
+                
+                $('#discount-row').show();
+                $('#discount-amount').text('-$' + discount.toFixed(2));
+                calculateTotals();
+                
+                showPromoMessage(`Promo code applied! You saved $${discount.toFixed(2)}`, 'success');
+                button.html('<i class="fas fa-check me-1"></i>Applied').removeClass('btn-outline-primary').addClass('btn-success');
+                $('#promo_code').prop('readonly', true);
+            } else {
+                showPromoMessage('Invalid promo code', 'error');
+                button.prop('disabled', false).html('<i class="fas fa-check me-1"></i>Apply');
+            }
+        }, 1000);
+    });
+    
+    function showPromoMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        $('#promo-message').html(`<div class="alert ${alertClass} alert-sm">${message}</div>`);
+        
+        setTimeout(function() {
+            $('#promo-message').fadeOut();
+        }, 3000);
+    }
+    
+    // Form validation
+    $('#checkout-form').submit(function(e) {
+        const requiredFields = ['shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'shipping_city', 'shipping_state', 'shipping_postal_code'];
+        let isValid = true;
+        
+        requiredFields.forEach(function(field) {
+            const value = $(`#${field}`).val().trim();
+            if (!value) {
+                $(`#${field}`).addClass('is-invalid');
+                isValid = false;
+            } else {
+                $(`#${field}`).removeClass('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            $('html, body').animate({
+                scrollTop: $('.is-invalid').first().offset().top - 100
+            }, 500);
+            
+            showMessage('Please fill in all required fields', 'error');
+        } else {
+            $('#place-order-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+        }
+    });
+    
+    function showMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alert = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        $('.container').prepend(alert);
+        
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 4000);
+    }
+    
+    // Initialize totals calculation
+    calculateTotals();
+});
+</script>
+{% endblock %}

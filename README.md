@@ -1,1 +1,0 @@
-﻿Kinmel Ecommerce App

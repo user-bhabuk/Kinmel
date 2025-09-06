@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Kinmel E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Profile Sidebar -->
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-3">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" 
+                             class="rounded-circle" 
+                             alt="{{ user.get_full_name }}"
+                             style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" 
+                             style="width: 100px; height: 100px; margin: 0 auto;">
+                            <i class="fas fa-user fa-3x"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted mb-2">{{ user.email }}</p>
+                    <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'trader' %}warning{% else %}primary{% endif %} mb-3">
+                        {{ user.get_role_display }}
+                    </span>
+                    {% if not user.is_approved %}
+                    <div class="alert alert-warning alert-sm">
+                        <small><i class="fas fa-clock me-1"></i>Pending Approval</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <div class="card mt-3">
+                <div class="list-group list-group-flush">
+                    <a href="#profile-info" class="list-group-item list-group-item-action active" data-tab="profile-info">
+                        <i class="fas fa-user me-2"></i>Profile Information
+                    </a>
+                    {% if user.is_customer %}
+                    <a href="#order-history" class="list-group-item list-group-item-action" data-tab="order-history">
+                        <i class="fas fa-history me-2"></i>Order History
+                    </a>
+                    <a href="#wishlist" class="list-group-item list-group-item-action" data-tab="wishlist">
+                        <i class="fas fa-heart me-2"></i>Wishlist
+                    </a>
+                    {% elif user.is_trader %}
+                    <a href="#business-info" class="list-group-item list-group-item-action" data-tab="business-info">
+                        <i class="fas fa-building me-2"></i>Business Information
+                    </a>
+                    <a href="#shops" class="list-group-item list-group-item-action" data-tab="shops">
+                        <i class="fas fa-store me-2"></i>My Shops
+                    </a>
+                    {% endif %}
+                    <a href="#security" class="list-group-item list-group-item-action" data-tab="security">
+                        <i class="fas fa-shield-alt me-2"></i>Security
+                    </a>
+                    <a href="#notifications" class="list-group-item list-group-item-action" data-tab="notifications">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Profile Information Tab -->
+            <div class="tab-content" id="profile-info">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Profile Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone_number" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="3">{{ user.address }}</textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ user.date_of_birth|date:'Y-m-d' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="profile_picture" class="form-label">Profile Picture</label>
+                                    <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Information Tab (Traders Only) -->
+            {% if user.is_trader %}
+            <div class="tab-content" id="business-info" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-building me-2"></i>Business Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user.trader_profile %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="business">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="business_name" class="form-label">Business Name</label>
+                                    <input type="text" class="form-control" id="business_name" name="business_name" value="{{ user.trader_profile.business_name }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="business_email" class="form-label">Business Email</label>
+                                    <input type="email" class="form-control" id="business_email" name="business_email" value="{{ user.trader_profile.business_email }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="business_phone" class="form-label">Business Phone</label>
+                                    <input type="tel" class="form-control" id="business_phone" name="business_phone" value="{{ user.trader_profile.business_phone }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="tax_id" class="form-label">Tax ID</label>
+                                    <input type="text" class="form-control" id="tax_id" name="tax_id" value="{{ user.trader_profile.tax_id }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="business_address" class="form-label">Business Address</label>
+                                <textarea class="form-control" id="business_address" name="business_address" rows="3">{{ user.trader_profile.business_address }}</textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="bank_name" class="form-label">Bank Name</label>
+                                    <input type="text" class="form-control" id="bank_name" name="bank_name" value="{{ user.trader_profile.bank_name }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="bank_account_number" class="form-label">Account Number</label>
+                                    <input type="text" class="form-control" id="bank_account_number" name="bank_account_number" value="{{ user.trader_profile.bank_account_number }}">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Business Info
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Business profile not found. Please contact support.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Security Tab -->
+            <div class="tab-content" id="security" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shield-alt me-2"></i>Security Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="password">
+                            
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="current_password" name="current_password" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="new_password1" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                                <div class="form-text">Password must be at least 8 characters long.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="new_password2" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-key me-2"></i>Change Password
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <hr class="my-4">
+                        
+                        <h6>Account Security</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>Two-Factor Authentication</span>
+                                    <span class="badge bg-secondary">Coming Soon</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>Login Notifications</span>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="login_notifications" checked disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Tab -->
+            <div class="tab-content" id="notifications" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bell me-2"></i>Notification Preferences
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="notifications">
+                            
+                            <h6>Email Notifications</h6>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="email_orders" name="email_orders" checked>
+                                    <label class="form-check-label" for="email_orders">
+                                        Order updates and confirmations
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="email_promotions" name="email_promotions" checked>
+                                    <label class="form-check-label" for="email_promotions">
+                                        Promotions and special offers
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="email_newsletter" name="email_newsletter">
+                                    <label class="form-check-label" for="email_newsletter">
+                                        Weekly newsletter
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            {% if user.is_trader %}
+                            <h6>Trader Notifications</h6>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="trader_orders" name="trader_orders" checked>
+                                    <label class="form-check-label" for="trader_orders">
+                                        New orders for my products
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="trader_inventory" name="trader_inventory" checked>
+                                    <label class="form-check-label" for="trader_inventory">
+                                        Low inventory alerts
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Preferences
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Tab switching
+    $('.list-group-item-action').click(function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all tabs
+        $('.list-group-item-action').removeClass('active');
+        $('.tab-content').hide();
+        
+        // Add active class to clicked tab
+        $(this).addClass('active');
+        
+        // Show corresponding content
+        const tabId = $(this).data('tab');
+        $(`#${tabId}`).show();
+    });
+    
+    // Profile picture preview
+    $('#profile_picture').change(function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('.profile-avatar img, .profile-avatar div').replaceWith(
+                    `<img src="${e.target.result}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">`
+                );
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Password strength indicator
+    $('#new_password1').on('input', function() {
+        const password = $(this).val();
+        let strength = 0;
+        
+        if (password.length >= 8) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        
+        let strengthText = '';
+        let strengthClass = '';
+        
+        switch(strength) {
+            case 0:
+            case 1:
+                strengthText = 'Weak';
+                strengthClass = 'text-danger';
+                break;
+            case 2:
+            case 3:
+                strengthText = 'Medium';
+                strengthClass = 'text-warning';
+                break;
+            case 4:
+            case 5:
+                strengthText = 'Strong';
+                strengthClass = 'text-success';
+                break;
+        }
+        
+        // Remove existing strength indicator
+        $(this).siblings('.password-strength').remove();
+        
+        if (password.length > 0) {
+            $(this).after(`<div class="password-strength small ${strengthClass}">Password strength: ${strengthText}</div>`);
+        }
+    });
+    
+    // Confirm password match
+    $('#new_password2').on('input', function() {
+        const password1 = $('#new_password1').val();
+        const password2 = $(this).val();
+        
+        $(this).siblings('.password-match').remove();
+        
+        if (password2.length > 0) {
+            if (password1 === password2) {
+                $(this).after('<div class="password-match small text-success">Passwords match</div>');
+            } else {
+                $(this).after('<div class="password-match small text-danger">Passwords do not match</div>');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{
+    "python.defaultInterpreterPath": "./venv/Scripts/python.exe",
+    "python.terminal.activateEnvironment": true,
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.profiles.windows": {
+        "Command Prompt": {
+            "path": "C:\\Windows\\System32\\cmd.exe",
+            "args": ["/k", "venv\\Scripts\\activate.bat"]
+        },
+        "PowerShell": {
+            "source": "PowerShell",
+            "args": ["-ExecutionPolicy", "Bypass", "-Command", "& {.\\venv\\Scripts\\Activate.ps1}"]
+        },
+        "Django Server": {
+            "path": "C:\\Windows\\System32\\cmd.exe",
+            "args": ["/k", "venv\\Scripts\\activate.bat && python manage.py runserver 127.0.0.1:8080"]
+        }
+    },
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "files.associations": {
+        "*.py": "python"
+    },
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.formatting.provider": "black"
+}
